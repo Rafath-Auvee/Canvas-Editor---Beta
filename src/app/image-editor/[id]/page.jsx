@@ -9,6 +9,7 @@ const ImageEditor = ({ params }) => {
 
   const [textStyles, setTextStyles] = useState(imageData.textStyles);
   const [fontSize, setFontSize] = useState(32);
+  const [selectedTextIndex, setSelectedTextIndex] = useState(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -21,17 +22,18 @@ const ImageEditor = ({ params }) => {
       // Draw the image on the canvas
       context.drawImage(image, 0, 0, canvas.width, canvas.height);
 
-      // Loop through the text styles and draw the preloaded texts on the canvas
+      // Loop through the text styles and draw the overlay markers on the canvas
       textStyles.forEach((textStyle) => {
-        console.log(textStyle.text)
         context.fillStyle = textStyle.backgroundColor;
-        context.font = `${fontSize}px ${textStyle.fontFamily}`;
-        context.textAlign = "left";
-        context.textBaseline = "top";
-        context.fillText(textStyle.text, textStyle.left, textStyle.top);
+        context.fillRect(
+          textStyle.left,
+          textStyle.top,
+          textStyle.width,
+          textStyle.height
+        );
       });
     };
-  }, [imageData, textStyles, fontSize]);
+  }, [imageData, textStyles]);
 
   const handleLeftChange = (index, e) => {
     const updatedTextStyles = [...textStyles];
@@ -100,26 +102,62 @@ const ImageEditor = ({ params }) => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-800 text-green-500 ">
       <h1 className="text-center text-3xl font-bold leading-5 mb-5">
         Image Editor
       </h1>
-      <canvas
-        ref={canvasRef}
-        className="border border-gray-500"
-        width={500} // Set the width of the canvas to match your desired image width
-        height={500} // Set the height of the canvas to match your desired image height
-      ></canvas>
+      {selectedTextIndex !== null && (
+        <p>Selected Text: {textStyles[selectedTextIndex].text}</p>
+      )}
+      <div className="relative">
+        <canvas
+          ref={canvasRef}
+          className="border border-gray-500"
+          width={500} // Set the width of the canvas to match your desired image width
+          height={500} // Set the height of the canvas to match your desired image height
+        ></canvas>
+        {textStyles.map((textStyle, index) => (
+          <div
+            key={index}
+            className={`absolute ${
+              selectedTextIndex === index ? "border-blue-500 border-2" : ""
+            }`}
+            style={{
+              left: textStyle.left,
+              top: textStyle.top,
+              cursor: "pointer",
+            }}
+            onClick={() => setSelectedTextIndex(index)}
+          >
+            <div
+              style={{
+                // backgroundColor: textStyle.backgroundColor,
+                color: "black",
+                fontFamily: textStyle.fontFamily,
+                fontSize: `${fontSize}px`,
+              }}
+            >
+              {textStyle.text}
+            </div>
+          </div>
+        ))}
+      </div>
       <div className="flex justify-center mt-4">
         {textStyles.map((textStyle, index) => (
-          <div key={index} className="flex flex-col items-center mx-4">
+          <div
+            key={index}
+            className={`flex flex-col items-center mx-4 ${
+              selectedTextIndex === index ? "border-blue-500 border-2" : ""
+            }`}
+            onClick={() => setSelectedTextIndex(index)}
+          >
             <label htmlFor={`leftInput-${index}`}>Left Position:</label>
             <input
               id={`leftInput-${index}`}
               type="number"
               value={textStyle.left}
               onChange={(e) => handleLeftChange(index, e)}
-              className="border border-gray-300 rounded px-2 py-1 mt-1"
+              className="border border-gray-300 rounded px-2 py-1 mt-1 placeholder:text-black"
             />
             <div className="flex mt-2">
               <button
@@ -142,7 +180,7 @@ const ImageEditor = ({ params }) => {
               type="number"
               value={textStyle.top}
               onChange={(e) => handleTopChange(index, e)}
-              className="border border-gray-300 rounded px-2 py-1 mt-1"
+              className="border border-gray-300 rounded px-2 py-1 mt-1 placeholder:text-black"
             />
             <div className="flex mt-2">
               <button
@@ -167,7 +205,7 @@ const ImageEditor = ({ params }) => {
             type="number"
             value={fontSize}
             onChange={handleFontSizeChange}
-            className="border border-gray-300 rounded px-2 py-1 mt-1"
+            className="border border-gray-300 rounded px-2 py-1 mt-1 placeholder:text-black"
           />
           <div className="flex mt-2">
             <button
@@ -185,10 +223,14 @@ const ImageEditor = ({ params }) => {
           </div>
         </div>
       </div>
-      <Link href="/image-picker">Go Back</Link>
+      <Link
+        href="/image-picker"
+        className="bg-green-200 text-green-500 px-5 py-2 mx-5 "
+      >
+        Go Back
+      </Link>
     </div>
   );
 };
 
 export default ImageEditor;
-

@@ -9,11 +9,11 @@ const ImagePicker = () => {
   const navigate = useRouter();
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen">
-      <h1 className="text-center mb-4 text-3xl font-bold leading-5">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-800 text-white">
+      <h1 className="text-center mb-5 text-5xl font-bold leading-5">
         Image Picker
       </h1>
-      <ul className="grid gap-6 grid-cols-3">
+      <ul className="grid gap-6 grid-cols-3 mt-10" >
         {images.map((image) => (
           <li key={image.id}>
             {/* {console.log(image.id)} */}
@@ -25,6 +25,7 @@ const ImagePicker = () => {
                   alt="Image"
                   width={0}
                   height={0}
+                  layout="fill"
                 />
               </div>
               <p className="text-2xl font-bold leading-2 w-48 text-center">

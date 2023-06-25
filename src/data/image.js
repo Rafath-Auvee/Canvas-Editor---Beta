@@ -60,7 +60,7 @@ export const images = [
     textStyles: [
       {
         id: 1,
-        text: "Text 1",
+        text: "One Text",
         left: 100,
         top: 150,
         color: "white",
@@ -70,7 +70,7 @@ export const images = [
       },
       {
         id: 2,
-        text: "Text 2",
+        text: "Two Text",
         left: 200,
         top: 250,
         color: "white",
@@ -80,7 +80,7 @@ export const images = [
       },
       {
         id: 3,
-        text: "Text 3",
+        text: "Three Text",
         left: 300,
         top: 350,
         color: "white",
