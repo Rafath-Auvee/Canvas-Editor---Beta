@@ -1,9 +1,13 @@
 "use client";
+import Draggable from "react-draggable";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import images from "../../../data/image";
+import { CiEdit } from "react-icons/ci";
 
 const ImageEditor = ({ params }) => {
+  const [showModal, setShowModal] = useState(false);
+
   const canvasRef = useRef(null);
   const imageData = images.find((image) => image.id === parseInt(params.id));
 
@@ -14,6 +18,7 @@ const ImageEditor = ({ params }) => {
     }))
   );
   const [selectedTextIndex, setSelectedTextIndex] = useState(null);
+  const [editingTextIndex, setEditingTextIndex] = useState(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -121,136 +126,274 @@ const ImageEditor = ({ params }) => {
   };
 
   const handleTextClick = (index) => {
-    setSelectedTextIndex(index === selectedTextIndex ? null : index);
+    if (selectedTextIndex !== index) {
+      setSelectedTextIndex(index);
+    }
   };
 
+  // Text Changing Function
+
+  const handleTextChange = (index, e) => {
+    const updatedTextStyles = [...textStyles];
+    updatedTextStyles[index] = {
+      ...updatedTextStyles[index],
+      text: e.target.value,
+    };
+    setTextStyles(updatedTextStyles);
+  };
+
+  const handleCanvasClick = (e) => {
+    const canvas = document.getElementById("canvas");
+    if (!canvas.contains(e.target)) {
+      setSelectedTextIndex(null);
+    }
+  };
+
+  // Drag and Drop
+
+  const handleTextDragStop = (index, data) => {
+    const updatedTextStyles = [...textStyles];
+    updatedTextStyles[index] = {
+      ...updatedTextStyles[index],
+      left: data.x,
+      top: data.y,
+    };
+    setTextStyles(updatedTextStyles);
+  };
+
+  // modal close & open
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-800 text-green-500">
-      <h1 className="text-center text-3xl font-bold leading-5 mb-5">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-white text-[#23272A]">
+      <h1 className="text-center text-3xl font-bold leading-5 mt-5">
         Image Editor
       </h1>
-      {selectedTextIndex !== null && (
+      {/* {selectedTextIndex !== null && (
         <p>Selected Text: {textStyles[selectedTextIndex].text}</p>
-      )}
-      {selectedTextIndex !== null && (
-        <div className="flex justify-center mt-4">
-          <div
-            key={selectedTextIndex}
-            className={`flex flex-row items-center mx-4 gap-10 px-5 py-2 bg-blue-400 text-blue-800 rounded border-blue-500 border-2`}
-          >
-            <label htmlFor={`leftInput-${selectedTextIndex}`}>
-              Left Position:
-            </label>
-            <input
-              id={`leftInput-${selectedTextIndex}`}
-              type="number"
-              value={textStyles[selectedTextIndex].left}
-              onChange={(e) => handleLeftChange(selectedTextIndex, e)}
-              className="border border-gray-300 rounded px-2 py-1 mt-1 placeholder:text-black w-16"
-            />
-            <div className="flex mt-2">
-              <button
-                onClick={() => incrementLeft(selectedTextIndex)}
-                className="bg-gray-200 rounded px-2 py-1 mr-1"
-              >
-                +
-              </button>
-              <button
-                onClick={() => decrementLeft(selectedTextIndex)}
-                className="bg-gray-200 rounded px-2 py-1"
-              >
-                -
-              </button>
-            </div>
+      )} */}
 
-            <label htmlFor={`topInput-${selectedTextIndex}`}>
-              Top Position:
-            </label>
-            <input
-              id={`topInput-${selectedTextIndex}`}
-              type="number"
-              value={textStyles[selectedTextIndex].top}
-              onChange={(e) => handleTopChange(selectedTextIndex, e)}
-              className="border border-gray-300 rounded px-2 py-1 mt-1 placeholder:text-black w-16"
-            />
-            <div className="flex mt-2">
-              <button
-                onClick={() => incrementTop(selectedTextIndex)}
-                className="bg-gray-200 rounded px-2 py-1 mr-1"
+      <div id="canvas" className="my-5" onClick={handleCanvasClick}>
+        {/* Your canvas content */}
+        {selectedTextIndex !== null && (
+          <div className="flex justify-center mt-4">
+            <div
+              key={selectedTextIndex}
+              className={`grid gap-4 grid-cols-3 px-5 py-2 bg-white text-[#23272A] rounded border-black border`}
+            >
+              <div
+                className="flex flex-col justify-center align-center items-center cursor-pointer"
+                onClick={() => setShowModal(true)}
               >
-                +
-              </button>
-              <button
-                onClick={() => decrementTop(selectedTextIndex)}
-                className="bg-gray-200 rounded px-2 py-1"
-              >
-                -
-              </button>
-            </div>
+                <button className="text-3xl">
+                  <CiEdit />
+                </button>
+                <label
+                  className="font-bold cursor-pointer"
+                  htmlFor={`textInput-${selectedTextIndex}`}
+                >
+                  Edit
+                </label>
+                <div className="flex">
+                  {/* {showModal ? (
+                    <input
+                      id={`textInput-${selectedTextIndex}`}
+                      type="text"
+                      value={textStyles[selectedTextIndex].text}
+                      onChange={(e) => handleTextChange(selectedTextIndex, e)}
+                      className="border border-gray-300 rounded px-2 py-1 mt-1 placeholder:text-black w-32"
+                    />
+                  ) : (
+                    <button onClick={() => setShowModal(true)}>
+                      Edit Text
+                    </button>
+                  )} */}
+                </div>
+              </div>
 
-            <label htmlFor={`fontSizeInput-${selectedTextIndex}`}>
-              Font Size:
-            </label>
-            <input
-              id={`fontSizeInput-${selectedTextIndex}`}
-              type="number"
-              value={textStyles[selectedTextIndex].fontSize}
-              onChange={(e) => handleFontSizeChange(selectedTextIndex, e)}
-              className="border border-gray-300 rounded px-2 py-1 mt-1 placeholder:text-black w-16"
-            />
-            <div className="flex mt-2">
-              <button
-                onClick={() => incrementFontSize(selectedTextIndex)}
-                className="bg-gray-200 rounded px-2 py-1 mr-1"
-              >
-                +
-              </button>
-              <button
-                onClick={() => decrementFontSize(selectedTextIndex)}
-                className="bg-gray-200 rounded px-2 py-1"
-              >
-                -
-              </button>
+              <div>
+                <label htmlFor={`leftInput-${selectedTextIndex}`}>
+                  Left Position:
+                </label>
+                <div className="flex">
+                  <input
+                    id={`leftInput-${selectedTextIndex}`}
+                    type="number"
+                    value={textStyles[selectedTextIndex].left}
+                    onChange={(e) => handleLeftChange(selectedTextIndex, e)}
+                    className="border border-gray-300 rounded px-2 py-1 mt-1 placeholder:text-black w-32"
+                  />
+                  <div className="flex mt-2">
+                    <button
+                      onClick={() => incrementLeft(selectedTextIndex)}
+                      className="bg-gray-200 rounded px-2 py-1 mr-1"
+                    >
+                      +
+                    </button>
+                    <button
+                      onClick={() => decrementLeft(selectedTextIndex)}
+                      className="bg-gray-200 rounded px-2 py-1"
+                    >
+                      -
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor={`topInput-${selectedTextIndex}`}>
+                  Top Position:
+                </label>
+                <div className="flex">
+                  <input
+                    id={`topInput-${selectedTextIndex}`}
+                    type="number"
+                    value={textStyles[selectedTextIndex].top}
+                    onChange={(e) => handleTopChange(selectedTextIndex, e)}
+                    className="border border-gray-300 rounded px-2 py-1 mt-1 placeholder:text-black w-32"
+                  />
+                  <div className="flex mt-2">
+                    <button
+                      onClick={() => incrementTop(selectedTextIndex)}
+                      className="bg-gray-200 rounded px-2 py-1 mr-1"
+                    >
+                      +
+                    </button>
+                    <button
+                      onClick={() => decrementTop(selectedTextIndex)}
+                      className="bg-gray-200 rounded px-2 py-1"
+                    >
+                      -
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor={`fontSizeInput-${selectedTextIndex}`}>
+                  Font Size:
+                </label>
+                <div className="flex">
+                  <input
+                    id={`fontSizeInput-${selectedTextIndex}`}
+                    type="number"
+                    value={textStyles[selectedTextIndex].fontSize}
+                    onChange={(e) => handleFontSizeChange(selectedTextIndex, e)}
+                    className="border border-gray-300 rounded px-2 py-1 mt-1 placeholder:text-black w-32"
+                  />
+                  <div className="flex mt-2">
+                    <button
+                      onClick={() => incrementFontSize(selectedTextIndex)}
+                      className="bg-gray-200 rounded px-2 py-1 mr-1"
+                    >
+                      +
+                    </button>
+                    <button
+                      onClick={() => decrementFontSize(selectedTextIndex)}
+                      className="bg-gray-200 rounded px-2 py-1"
+                    >
+                      -
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {showModal ? (
+          <>
+            <div className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none backdrop-blur-3xl">
+              <div className="relative w-full my-6 mx-auto max-w-3xl">
+                {/*content*/}
+                <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
+                  {/*header*/}
+                  <div className="flex items-start justify-between p-5 border-b border-solid border-slate-200 rounded-t">
+                    <h3 className="text-1xl font-semibold">Update Your Text</h3>
+                    <button
+                      className="p-1 ml-auto bg-transparent border-0 text-black opacity-5 float-right text-3xl leading-none font-semibold outline-none focus:outline-none"
+                      onClick={() => setShowModal(false)}
+                    >
+                      <span className="bg-transparent text-black opacity-5 h-6 w-6 text-2xl block outline-none focus:outline-none">
+                        ×
+                      </span>
+                    </button>
+                  </div>
+                  {/*body*/}
+                  <div className="relative p-6 flex-auto">
+                    <input
+                      id={`textInput-${selectedTextIndex}`}
+                      type="text"
+                      value={textStyles[selectedTextIndex].text}
+                      onChange={(e) => handleTextChange(selectedTextIndex, e)}
+                      className="border border-gray-300 rounded px-2 py-1 mt-1 placeholder:text-black w-full"
+                    />
+                  </div>
+                  {/*footer*/}
+                  <div className="flex items-center justify-end p-6 border-t border-solid border-slate-200 rounded-b">
+                    <button
+                      className="text-red-500 background-transparent font-bold uppercase px-6 py-2 text-sm outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                      type="button"
+                      onClick={() => setShowModal(false)}
+                    >
+                      Close
+                    </button>
+                    <button
+                      className="bg-[#23272A] text-white active:bg-[#23272A] font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                      type="button"
+                      onClick={() => setShowModal(false)}
+                    >
+                      Update
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="opacity-25 fixed inset-0 z-40 bg-black"></div>
+          </>
+        ) : null}
+      </div>
+
       <div className="relative">
         <canvas
           ref={canvasRef}
           className="border border-gray-500"
-          width={500} // Set the width of the canvas to match your desired image width
-          height={500} // Set the height of the canvas to match your desired image height
+          width={500}
+          height={500}
         ></canvas>
         {textStyles.map((textStyle, index) => (
-          <div
+          <Draggable
             key={index}
-            className={`absolute ${
-              selectedTextIndex === index ? "border-blue-500 border-2" : ""
-            }`}
-            style={{
-              left: textStyle.left,
-              top: textStyle.top,
-              cursor: "pointer",
-            }}
-            onClick={() => handleTextClick(index)}
+            position={{ x: textStyle.left, y: textStyle.top }}
+            onStop={(e, data) => handleTextDragStop(index, data)}
+            bounds="parent" // Restrict dragging within the parent container (canvas)
           >
             <div
+              className={`absolute ${
+                selectedTextIndex === index
+                  ? "border-gray-500  border-2 border-dashed"
+                  : ""
+              }`}
               style={{
-                // backgroundColor: textStyle.backgroundColor,
-                color: "black",
-                fontFamily: textStyle.fontFamily,
-                fontSize: `${textStyle.fontSize}px`,
+                cursor: "pointer",
               }}
+              onClick={() => handleTextClick(index)}
             >
-              {textStyle.text}
+              <div
+                style={{
+                  color: "black",
+                  fontFamily: textStyle.fontFamily,
+                  fontSize: `${textStyle.fontSize}px`,
+                }}
+              >
+                {textStyle.text}
+              </div>
             </div>
-          </div>
+          </Draggable>
         ))}
       </div>
 
       <div className="flex mt-4">
-        <Link href="/image-editor">
+        <Link href="/image-picker">
           <p className="bg-gray-200 rounded px-4 py-2 mr-2">Back</p>
         </Link>
         <Link href="/">
