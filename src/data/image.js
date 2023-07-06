@@ -3,6 +3,7 @@ export const images = [
     id: 1,
     name: "Burkina Faso serve Togo Vincent student",
     url: "/images/1.jpg",
+    type: "single",
     textStyles: [
       {
         id: 1,
@@ -30,6 +31,7 @@ export const images = [
     id: 2,
     name: "Armenia tide Paraguay Emily factor",
     url: "/images/2.jpg",
+    type: "single",
     textStyles: [
       {
         id: 1,
@@ -57,6 +59,7 @@ export const images = [
     id: 3,
     name: "Example Image 3",
     url: "/images/3.jpg",
+    type: "single",
     textStyles: [
       {
         id: 1,
@@ -88,6 +91,36 @@ export const images = [
         backgroundColor: "rgba(0, 0, 0, 0.5)",
         padding: "10px",
       },
+    ],
+  },
+  {
+    id: 4,
+    name: "Example Image 1",
+    type: "multiple",
+    url: "/images/double/1_1.jpg",
+    images: [
+      {
+        id: 1,
+        url: "/images/double/1_1.jpg",
+        textStyles: [
+          // Text styles for the first image of the first object
+        ],
+      },
+      {
+        id: 2,
+        url: "/images/double/1_2.jpg",
+        textStyles: [
+          // Text styles for the second image of the first object
+        ],
+      },
+      {
+        id: 3,
+        url: "/images/double/1_3.jpg",
+        textStyles: [
+          // Text styles for the second image of the first object
+        ],
+      },
+      // Add more image objects for the first object if needed
     ],
   },
 ];
