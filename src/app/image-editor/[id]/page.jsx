@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import images from "../../../data/image";
 import { CiEdit } from "react-icons/ci";
+import Image from "next/image";
 
 const ImageEditor = ({ params }) => {
   const [showModal, setShowModal] = useState(false);
@@ -11,21 +12,68 @@ const ImageEditor = ({ params }) => {
   const canvasRef = useRef(null);
   const imageData = images.find((image) => image.id === parseInt(params.id));
 
+  // Add a conditional check for imageData before accessing its properties
   const [textStyles, setTextStyles] = useState(
-    imageData.textStyles.map((textStyle) => ({
+    imageData?.textStyles?.map((textStyle) => ({
       ...textStyle,
       fontSize: parseInt(textStyle.fontSize),
-    }))
+    })) || []
   );
   const [selectedTextIndex, setSelectedTextIndex] = useState(null);
   const [editingTextIndex, setEditingTextIndex] = useState(null);
+
+  const [selectedImage, setSelectedImage] = useState(
+    imageData?.images ? imageData.images[0].url : null
+  );
+
+  const [selectedImageTextStyles, setSelectedImageTextStyles] = useState(
+    imageData?.images ? imageData.images[0].textStyles : []
+  );
+
+  const handleImageClick = (url) => {
+    setSelectedImage(url);
+
+    const canvas = canvasRef.current;
+    const context = canvas.getContext("2d");
+
+    const selectedImageData = imageData.images.find(
+      (image) => image.url === url
+    );
+
+    const image = document.createElement("img"); // Create an HTMLImageElement
+    image.src = url;
+
+    image.onload = () => {
+      // Clear the canvas
+      context.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw the image on the canvas
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+      // Loop through the text styles of the selected image and draw the overlay markers on the canvas
+      selectedImageData.textStyles.forEach((textStyle) => {
+        context.fillStyle = textStyle.backgroundColor;
+        context.fillRect(
+          textStyle.left,
+          textStyle.top,
+          textStyle.width,
+          textStyle.height
+        );
+      });
+
+      // Update the textStyles state with the initial textStyles of the selected image
+      setTextStyles(selectedImageData.textStyles);
+
+      // Update the selectedImageTextStyles state with the initial textStyles of the selected image
+      setSelectedImageTextStyles(selectedImageData.textStyles);
+    };
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
 
-    const image = new Image();
-    image.src = imageData.url;
+    const image = document.createElement("img"); // Create an HTMLImageElement
 
     image.onload = () => {
       // Draw the image on the canvas
@@ -42,7 +90,25 @@ const ImageEditor = ({ params }) => {
         );
       });
     };
-  }, [imageData, textStyles]);
+
+    if (imageData.imageType === "multiple image") {
+      const selectedImageData = imageData.images.find(
+        (image) => image.url === selectedImage
+      );
+
+      if (selectedImageData) {
+        image.src = selectedImage;
+
+        // Update the textStyles state with the initial textStyles of the selected image
+        setTextStyles(selectedImageData.textStyles);
+
+        // Update the selectedImageTextStyles state with the initial textStyles of the selected image
+        setSelectedImageTextStyles(selectedImageData.textStyles);
+      }
+    } else {
+      image.src = imageData.url;
+    }
+  }, [imageData, selectedImage, textStyles]);
 
   const handleLeftChange = (index, e) => {
     const updatedTextStyles = [...textStyles];
@@ -68,7 +134,18 @@ const ImageEditor = ({ params }) => {
       ...updatedTextStyles[index],
       fontSize: parseInt(e.target.value),
     };
-    setTextStyles(updatedTextStyles);
+
+    if (imageData.imageType === "multiple image") {
+      const selectedImageData = imageData.images.find(
+        (img) => img.url === selectedImage
+      );
+      selectedImageData.textStyles = updatedTextStyles;
+
+      // Update the selectedImageTextStyles state with the updated textStyles of the selected image
+      setSelectedImageTextStyles(updatedTextStyles);
+    } else {
+      setTextStyles(updatedTextStyles);
+    }
   };
 
   const incrementLeft = (index) => {
@@ -140,6 +217,16 @@ const ImageEditor = ({ params }) => {
       text: e.target.value,
     };
     setTextStyles(updatedTextStyles);
+
+    if (imageData.imageType === "multiple image") {
+      const selectedImageData = imageData.images.find(
+        (img) => img.url === selectedImage
+      );
+      selectedImageData.textStyles = updatedTextStyles;
+
+      // Update the selectedImageTextStyles state with the updated textStyles of the selected image
+      setSelectedImageTextStyles(updatedTextStyles);
+    }
   };
 
   const handleCanvasClick = (e) => {
@@ -159,7 +246,15 @@ const ImageEditor = ({ params }) => {
       top: data.y,
     };
     setTextStyles(updatedTextStyles);
+  
+    if (imageData.imageType === "multiple image") {
+      const selectedImageData = imageData.images.find(
+        (img) => img.url === selectedImage
+      );
+      selectedImageData.textStyles = updatedTextStyles;
+    }
   };
+  
 
   // modal close & open
 
@@ -209,9 +304,8 @@ const ImageEditor = ({ params }) => {
                   )} */}
                 </div>
               </div>
-                
 
-                {/* left and top position  */}
+              {/* left and top position  */}
 
               {/* <div>
                 <label htmlFor={`leftInput-${selectedTextIndex}`}>
@@ -270,14 +364,6 @@ const ImageEditor = ({ params }) => {
                   </div>
                 </div>
               </div> */}
-
-
-
-
-
-
-
-
 
               <div>
                 <label htmlFor={`fontSizeInput-${selectedTextIndex}`}>
@@ -402,6 +488,24 @@ const ImageEditor = ({ params }) => {
           </Draggable>
         ))}
       </div>
+
+      {imageData && imageData.imageType === "multiple image" && (
+        <div className="flex justify-center mt-4">
+          {imageData.images.map((image) => (
+            <Image
+              width={0}
+              height={0}
+              key={image.id}
+              src={image.url}
+              alt={`Image ${image.id}`}
+              className={`w-16 h-16 mx-1 cursor-pointer ${
+                selectedImage === image.url ? "border-2 border-blue-500" : ""
+              }`}
+              onClick={() => handleImageClick(image.url)}
+            />
+          ))}
+        </div>
+      )}
 
       <div className="flex mt-4">
         <Link href="/image-picker">
