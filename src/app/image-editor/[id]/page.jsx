@@ -84,47 +84,67 @@ const ImageEditor = ({ params }) => {
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
   
-    const image = document.createElement("img"); // Create an HTMLImageElement
-  
-    image.onload = () => {
-      // Draw the image on the canvas
-      context.drawImage(image, 0, 0, canvas.width, canvas.height);
-  
-      // Loop through the text styles and draw the overlay markers on the canvas
-      textStyles.forEach((textStyle) => {
-        context.fillStyle = textStyle.backgroundColor;
-        context.fillRect(
-          textStyle.left,
-          textStyle.top,
-          textStyle.width,
-          textStyle.height
-        );
-      });
-    };
-  
     if (imageData.imageType === "multiple image") {
       const selectedImageData = imageData.images.find(
         (image) => image.url === selectedImage
       );
   
       if (selectedImageData) {
+        const image = document.createElement("img");// Create a new instance of HTMLImageElement
         image.src = selectedImage;
   
-        // Update the textStyles state with the initial textStyles of the selected image
-        setTextStyles(
-          selectedImageData.textStyles.map((textStyle) => ({
-            ...textStyle,
-            fontSize: parseInt(textStyle.fontSize),
-          }))
-        );
+        image.onload = () => {
+          // Clear the canvas
+          context.clearRect(0, 0, canvas.width, canvas.height);
   
-        // Update the selectedImageTextStyles state with the initial textStyles of the selected image
-        setSelectedImageTextStyles(selectedImageData.textStyles);
+          // Draw the image on the canvas
+          context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  
+          // Loop through the text styles of the selected image and draw the overlay markers on the canvas
+          selectedImageData.textStyles.forEach((textStyle) => {
+            context.fillStyle = textStyle.backgroundColor;
+            context.fillRect(
+              textStyle.left,
+              textStyle.top,
+              textStyle.width,
+              textStyle.height
+            );
+          });
+  
+          // Update the textStyles state with the initial textStyles of the selected image
+          setTextStyles(
+            selectedImageData.textStyles.map((textStyle) => ({
+              ...textStyle,
+              fontSize: parseInt(textStyle.fontSize),
+            }))
+          );
+  
+          // Update the selectedImageTextStyles state with the initial textStyles of the selected image
+          setSelectedImageTextStyles(selectedImageData.textStyles);
+        };
       }
     } else {
+      const image = document.createElement("img"); // Create a new instance of HTMLImageElement
       image.src = imageData.url;
+  
+      image.onload = () => {
+        // Draw the image on the canvas
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  
+        // Loop through the text styles and draw the overlay markers on the canvas
+        textStyles.forEach((textStyle) => {
+          context.fillStyle = textStyle.backgroundColor;
+          context.fillRect(
+            textStyle.left,
+            textStyle.top,
+            textStyle.width,
+            textStyle.height
+          );
+        });
+      };
     }
   }, [imageData, selectedImage, textStyles]);
+  
   
 
   const handleFontSizeChange = (index, e) => {
