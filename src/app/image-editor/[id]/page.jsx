@@ -110,6 +110,33 @@ const ImageEditor = ({ params }) => {
     }
   }, [imageData, selectedImage, textStyles]);
 
+  const handleFontSizeChange = (index, e) => {
+    const fontSize = parseInt(e.target.value);
+  
+    if (!isNaN(fontSize)) {
+      const updatedTextStyles = textStyles.map((textStyle, i) => {
+        if (i === index) {
+          return {
+            ...textStyle,
+            fontSize,
+          };
+        }
+        return textStyle;
+      });
+  
+      setTextStyles(updatedTextStyles);
+  
+      if (imageData.imageType === "multiple image") {
+        const selectedImageData = imageData.images.find(
+          (img) => img.url === selectedImage
+        );
+        selectedImageData.textStyles = updatedTextStyles;
+        setSelectedImageTextStyles(updatedTextStyles);
+      }
+    }
+  };
+  
+
   const handleLeftChange = (index, e) => {
     const updatedTextStyles = [...textStyles];
     updatedTextStyles[index] = {
@@ -126,26 +153,6 @@ const ImageEditor = ({ params }) => {
       top: parseInt(e.target.value),
     };
     setTextStyles(updatedTextStyles);
-  };
-
-  const handleFontSizeChange = (index, e) => {
-    const updatedTextStyles = [...textStyles];
-    updatedTextStyles[index] = {
-      ...updatedTextStyles[index],
-      fontSize: parseInt(e.target.value),
-    };
-
-    if (imageData.imageType === "multiple image") {
-      const selectedImageData = imageData.images.find(
-        (img) => img.url === selectedImage
-      );
-      selectedImageData.textStyles = updatedTextStyles;
-
-      // Update the selectedImageTextStyles state with the updated textStyles of the selected image
-      setSelectedImageTextStyles(updatedTextStyles);
-    } else {
-      setTextStyles(updatedTextStyles);
-    }
   };
 
   const incrementLeft = (index) => {
@@ -246,7 +253,7 @@ const ImageEditor = ({ params }) => {
       top: data.y,
     };
     setTextStyles(updatedTextStyles);
-  
+
     if (imageData.imageType === "multiple image") {
       const selectedImageData = imageData.images.find(
         (img) => img.url === selectedImage
@@ -254,7 +261,6 @@ const ImageEditor = ({ params }) => {
       selectedImageData.textStyles = updatedTextStyles;
     }
   };
-  
 
   // modal close & open
 
@@ -373,10 +379,17 @@ const ImageEditor = ({ params }) => {
                   <input
                     id={`fontSizeInput-${selectedTextIndex}`}
                     type="number"
-                    value={textStyles[selectedTextIndex].fontSize}
+                    value={
+                      imageData.imageType === "multiple image"
+                        ? selectedImageTextStyles[selectedTextIndex].fontSize
+                        : textStyles[selectedTextIndex].fontSize
+                    }
                     onChange={(e) => handleFontSizeChange(selectedTextIndex, e)}
+                    onInput={(e) => handleFontSizeChange(selectedTextIndex, e)}
                     className="border border-gray-300 rounded px-2 py-1 mt-1 placeholder:text-black w-32"
+                    min="0" // Add this line to prevent negative values
                   />
+
                   <div className="flex mt-2">
                     <button
                       onClick={() => incrementFontSize(selectedTextIndex)}
