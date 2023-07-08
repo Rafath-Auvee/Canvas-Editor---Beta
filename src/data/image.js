@@ -109,7 +109,7 @@ export const images = [
             left: 127,
             top: -281,
             color: "white",
-            fontSize: "32px",
+            fontSize: "50px",
             backgroundColor: "rgba(0, 0, 0, 0.5)",
             padding: "10px",
           },
