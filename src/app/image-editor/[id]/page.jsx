@@ -33,8 +33,7 @@ const ImageEditor = ({ params }) => {
           fontSize: textStyle.fontSize,
           backgroundColor: textStyle.backgroundColor,
           padding: textStyle.padding,
-        })),
-        
+        })),      
       };
     } else if (imageData.imageType === "multiple image") {
       previewData = {
@@ -602,7 +601,7 @@ const ImageEditor = ({ params }) => {
       {imageData && imageData.imageType === "multiple image" && (
         <div className="flex justify-center mt-4">
           {imageData.images.map((image, index) => (
-            <div className="flex flex-col text-center mx-3">
+            <div className="flex flex-col text-center mx-3" key={index}>
               <Image
                 width={0}
                 height={0}

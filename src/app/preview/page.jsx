@@ -1,22 +1,29 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import Draggable from "react-draggable";
+
 import dynamic from "next/dynamic";
 
 const localStorage = typeof window !== "undefined" ? window.localStorage : null;
 
 const PreviewCard = () => {
   const imageData = JSON.parse(localStorage.getItem("previewData"));
+  const [isOpen, setIsOpen] = useState(false);
 
+  const toggleDropdown = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const handleItemClick = (item) => {
+    console.log(`Clicked on ${item}`);
+  };
+  
   if (!imageData) {
     return <div>Loading</div>;
   }
 
-  const [showModal, setShowModal] = useState(false);
-  const [previewData, setPreviewData] = useState(null);
 
   const handleSaveClick = () => {
     let previewData = null; // Declare the previewData variable outside the conditional statements
@@ -61,22 +68,16 @@ const PreviewCard = () => {
 
   const canvasRef = useRef(null);
 
-  const multipleImageFontSizes =
-    imageData.imageType === "multiple image"
-      ? imageData.images.map((image) =>
-          image.textStyles.map((textStyle) => textStyle.fontSize)
-        )
-      : [];
 
-  // Add a conditional check for imageData before accessing its properties
+
+
   const [textStyles, setTextStyles] = useState(
     imageData?.textStyles?.map((textStyle) => ({
       ...textStyle,
       fontSize: parseInt(textStyle.fontSize),
     })) || []
   );
-  const [selectedTextIndex, setSelectedTextIndex] = useState(null);
-  const [editingTextIndex, setEditingTextIndex] = useState(null);
+
 
   const [selectedImage, setSelectedImage] = useState(
     imageData?.images ? imageData.images[0].url : null
@@ -131,8 +132,6 @@ const PreviewCard = () => {
   };
 
   useEffect(() => {
-        
-
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
 
@@ -249,7 +248,7 @@ const PreviewCard = () => {
       {imageData && imageData.imageType === "multiple image" && (
         <div className="flex justify-center ">
           {imageData.images.map((image, index) => (
-            <div className="flex flex-col text-center mx-3">
+            <div className="flex flex-col text-center mx-3" key={index}>
               <Image
                 width={0}
                 height={0}
@@ -267,7 +266,80 @@ const PreviewCard = () => {
         </div>
       )}
 
-      
+      <div className="relative inline-block text-left">
+        <div>
+          <button
+            type="button"
+            className="inline-flex justify-center w-full rounded-lg shadow-sm px-4 py-2 text-sm font-medium text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            id="dropdown-button"
+            aria-haspopup="true"
+            aria-expanded={isOpen ? "true" : "false"}
+            onClick={toggleDropdown}
+          >
+            Download
+            <svg
+              className="-mr-1 ml-2 h-5 w-5"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 3.586L4.707 8.879a1 1 0 0 0 0 1.414l5.293 5.293a1 1 0 0 0 1.414-1.414L7.414 10l4.293-4.293a1 1 0 1 0-1.414-1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
+
+        {isOpen && (
+          <div
+            className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100"
+            role="menu"
+            aria-orientation="vertical"
+            aria-labelledby="dropdown-button"
+          >
+            <div className="py-1" role="none">
+              <button
+                className="text-sm text-gray-700 block px-4 py-2 w-full text-left"
+                role="menuitem"
+                onClick={() => handleItemClick("Download as JPEG")}
+              >
+                Download as JPEG
+              </button>
+              <button
+                className="text-sm text-gray-700 block px-4 py-2 w-full text-left"
+                role="menuitem"
+                onClick={() => handleItemClick("Download as PNG")}
+              >
+                Download as PNG
+              </button>
+              <button
+                className="text-sm text-gray-700 block px-4 py-2 w-full text-left"
+                role="menuitem"
+                onClick={() => handleItemClick("Download as PDF")}
+              >
+                Download as PDF
+              </button>
+              <button
+                className="text-sm text-gray-700 block px-4 py-2 w-full text-left"
+                role="menuitem"
+                onClick={() => handleItemClick("Download as GIF")}
+              >
+                Download as GIF
+              </button>
+              <button
+                className="text-sm text-gray-700 block px-4 py-2 w-full text-left"
+                role="menuitem"
+                onClick={() => handleItemClick("Download as Video")}
+              >
+                Download as Video
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       <div className="flex mt-4 align-center justify-center">
         <Link href="/image-picker">
