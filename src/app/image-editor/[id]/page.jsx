@@ -5,12 +5,65 @@ import Link from "next/link";
 import images from "../../../data/image";
 import { CiEdit } from "react-icons/ci";
 import Image from "next/image";
+import PreviewCard from "../../preview/page";
+import { useRouter } from "next/navigation";
 
 const ImageEditor = ({ params }) => {
   const [showModal, setShowModal] = useState(false);
-
+  const [previewData, setPreviewData] = useState(null);
+  const router = useRouter();
   const canvasRef = useRef(null);
   const imageData = images.find((image) => image.id === parseInt(params.id));
+
+
+  const handleSaveClick = () => {
+    let previewData = null; // Declare the previewData variable outside the conditional statements
+    
+
+    if (imageData.imageType === "single image") {
+      previewData = {
+        url:imageData.url,
+        imageType: imageData.imageType,
+        textStyles: textStyles.map((textStyle) => ({
+          id: textStyle.id,
+          text: textStyle.text,
+          left: textStyle.left,
+          top: textStyle.top,
+          color: textStyle.color,
+          fontSize: textStyle.fontSize,
+          backgroundColor: textStyle.backgroundColor,
+          padding: textStyle.padding,
+        })),
+        
+      };
+    } else if (imageData.imageType === "multiple image") {
+      previewData = {
+        imageType: imageData.imageType,
+        images: imageData.images.map((image) => ({
+          id: image.id,
+          url: image.url,
+          textStyles: image.textStyles.map((textStyle) => ({
+            id: textStyle.id,
+            text: textStyle.text,
+            left: textStyle.left,
+            top: textStyle.top,
+            color: textStyle.color,
+            fontSize: textStyle.fontSize,
+            backgroundColor: textStyle.backgroundColor,
+            padding: textStyle.padding,
+          })),
+        })),
+      };
+    }
+
+    localStorage.setItem("previewData", JSON.stringify(previewData));
+    // Save the preview data in localStorage
+
+    // Navigate to the "/preview" page
+    window.location.href = "/preview";
+  };
+
+
 
   const multipleImageFontSizes =
     imageData.imageType === "multiple image"
@@ -39,22 +92,24 @@ const ImageEditor = ({ params }) => {
 
   const handleImageClick = (url) => {
     setSelectedImage(url);
-  
+
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
-  
-    const selectedImageData = imageData.images.find((image) => image.url === url);
-  
+
+    const selectedImageData = imageData.images.find(
+      (image) => image.url === url
+    );
+
     const image = document.createElement("img"); // Create an HTMLImageElement
     image.src = url;
-  
+
     image.onload = () => {
       // Clear the canvas
       context.clearRect(0, 0, canvas.width, canvas.height);
-  
+
       // Draw the image on the canvas
       context.drawImage(image, 0, 0, canvas.width, canvas.height);
-  
+
       // Loop through the text styles of the selected image and draw the overlay markers on the canvas
       selectedImageData.textStyles.forEach((textStyle) => {
         context.fillStyle = textStyle.backgroundColor;
@@ -65,7 +120,7 @@ const ImageEditor = ({ params }) => {
           textStyle.height
         );
       });
-  
+
       // Update the textStyles state with the initial textStyles of the selected image
       setTextStyles(
         selectedImageData.textStyles.map((textStyle) => ({
@@ -73,33 +128,32 @@ const ImageEditor = ({ params }) => {
           fontSize: parseInt(textStyle.fontSize),
         }))
       );
-  
+
       // Update the selectedImageTextStyles state with the initial textStyles of the selected image
       setSelectedImageTextStyles(selectedImageData.textStyles);
     };
   };
-  
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
-  
+
     if (imageData.imageType === "multiple image") {
       const selectedImageData = imageData.images.find(
         (image) => image.url === selectedImage
       );
-  
+
       if (selectedImageData) {
-        const image = document.createElement("img");// Create a new instance of HTMLImageElement
+        const image = document.createElement("img"); // Create a new instance of HTMLImageElement
         image.src = selectedImage;
-  
+
         image.onload = () => {
           // Clear the canvas
           context.clearRect(0, 0, canvas.width, canvas.height);
-  
+
           // Draw the image on the canvas
           context.drawImage(image, 0, 0, canvas.width, canvas.height);
-  
+
           // Loop through the text styles of the selected image and draw the overlay markers on the canvas
           selectedImageData.textStyles.forEach((textStyle) => {
             context.fillStyle = textStyle.backgroundColor;
@@ -110,7 +164,7 @@ const ImageEditor = ({ params }) => {
               textStyle.height
             );
           });
-  
+
           // Update the textStyles state with the initial textStyles of the selected image
           setTextStyles(
             selectedImageData.textStyles.map((textStyle) => ({
@@ -118,7 +172,7 @@ const ImageEditor = ({ params }) => {
               fontSize: parseInt(textStyle.fontSize),
             }))
           );
-  
+
           // Update the selectedImageTextStyles state with the initial textStyles of the selected image
           setSelectedImageTextStyles(selectedImageData.textStyles);
         };
@@ -126,11 +180,11 @@ const ImageEditor = ({ params }) => {
     } else {
       const image = document.createElement("img"); // Create a new instance of HTMLImageElement
       image.src = imageData.url;
-  
+
       image.onload = () => {
         // Draw the image on the canvas
         context.drawImage(image, 0, 0, canvas.width, canvas.height);
-  
+
         // Loop through the text styles and draw the overlay markers on the canvas
         textStyles.forEach((textStyle) => {
           context.fillStyle = textStyle.backgroundColor;
@@ -144,8 +198,6 @@ const ImageEditor = ({ params }) => {
       };
     }
   }, [imageData, selectedImage, textStyles]);
-  
-  
 
   const handleFontSizeChange = (index, e) => {
     const fontSize = parseInt(e.target.value);
@@ -408,9 +460,9 @@ const ImageEditor = ({ params }) => {
               </div> */}
 
               <div>
-                <label htmlFor={`fontSizeInput-${selectedTextIndex}`}>
+                {/* <label htmlFor={`fontSizeInput-${selectedTextIndex}`}>
                   Font Size:
-                </label>
+                </label> */}
                 <div className="flex">
                   <input
                     id={`fontSizeInput-${selectedTextIndex}`}
@@ -422,7 +474,7 @@ const ImageEditor = ({ params }) => {
                     }
                     onChange={(e) => handleFontSizeChange(selectedTextIndex, e)}
                     onInput={(e) => handleFontSizeChange(selectedTextIndex, e)}
-                    className="border border-gray-300 rounded px-2 py-1 mt-1 placeholder:text-black w-32"
+                    className="border border-gray-300 rounded px-2 py-1 mt-1 placeholder:text-black w-16"
                     min="5" // Add this line to prevent negative values
                   />
 
@@ -441,6 +493,15 @@ const ImageEditor = ({ params }) => {
                     </button>
                   </div>
                 </div>
+              </div>
+
+              <div className="flex flex-col justify-center align-center items-center cursor-pointer">
+                <button
+                  className="bg-[#23272A] text-white rounded px-4 py-2 mr-2 "
+                  onClick={handleSaveClick}
+                >
+                  Next
+                </button>
               </div>
             </div>
           </div>
@@ -540,22 +601,28 @@ const ImageEditor = ({ params }) => {
 
       {imageData && imageData.imageType === "multiple image" && (
         <div className="flex justify-center mt-4">
-          {imageData.images.map((image) => (
-            <Image
-              width={0}
-              height={0}
-              key={image.id}
-              src={image.url}
-              alt={`Image ${image.id}`}
-              className={`w-16 h-16 mx-1 cursor-pointer ${
-                selectedImage === image.url ? "border-2 border-blue-500" : ""
-              }`}
-              onClick={() => handleImageClick(image.url)}
-            />
+          {imageData.images.map((image, index) => (
+            <div className="flex flex-col text-center mx-3">
+              <Image
+                width={0}
+                height={0}
+                key={image.id}
+                src={image.url}
+                alt={`Image ${image.id}`}
+                className={`w-16 h-16 mx-1 cursor-pointer ${
+                  selectedImage === image.url ? "border-2 border-blue-500" : ""
+                }`}
+                onClick={() => handleImageClick(image.url)}
+              />
+              <p>Page {index+1}</p>
+            </div>
           ))}
         </div>
       )}
 
+      {/* <PreviewCard imageData={previewData} /> */}
+
+      {/* <PreviewCard imageData={previewData} /> */}
       {/* {imageData.imageType === "multiple image" && (
         <div className="mt-4">
           <h3 className="text-xl font-bold">Font Sizes:</h3>
@@ -574,7 +641,14 @@ const ImageEditor = ({ params }) => {
         </div>
       )} */}
 
-      <div className="flex mt-4">
+      <div className="flex mt-4 align-center justify-center">
+        <button
+          className="bg-gray-200 rounded px-4 py-2 mr-2 "
+          onClick={handleSaveClick}
+        >
+          Save
+        </button>
+
         <Link href="/image-picker">
           <p className="bg-gray-200 rounded px-4 py-2 mr-2">Back</p>
         </Link>
