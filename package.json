@@ -10,8 +10,10 @@
   },
   "dependencies": {
     "autoprefixer": "10.4.14",
+    "downloadjs": "^1.4.7",
     "eslint": "8.43.0",
     "eslint-config-next": "13.4.7",
+    "html2canvas": "^1.4.1",
     "next": "13.4.7",
     "postcss": "8.4.24",
     "react": "18.2.0",

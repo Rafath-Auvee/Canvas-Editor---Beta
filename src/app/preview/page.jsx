@@ -3,73 +3,31 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-
-import dynamic from "next/dynamic";
-
-const localStorage = typeof window !== "undefined" ? window.localStorage : null;
+import html2canvas from "html2canvas";
+import download from "downloadjs";
 
 const PreviewCard = () => {
-  const imageData = JSON.parse(localStorage.getItem("previewData"));
+  const [isDownloading, setIsDownloading] = useState(false);
+  const storage = typeof window !== "undefined" ? window.localStorage : null;
+  const imageData = JSON.parse(storage.getItem("previewData"));
   const [isOpen, setIsOpen] = useState(false);
+  const canvasRef = useRef(null);
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
   };
 
-  const handleItemClick = (item) => {
+  const handleItemClick = async (item) => {
+    setIsDownloading(true);
     console.log(`Clicked on ${item}`);
+    setIsDownloading(false);
   };
-  
+
+
+
   if (!imageData) {
     return <div>Loading</div>;
   }
-
-
-  const handleSaveClick = () => {
-    let previewData = null; // Declare the previewData variable outside the conditional statements
-
-    if (imageData.imageType === "single image") {
-      previewData = {
-        imageType: imageData.imageType,
-        text: textStyles[0].text,
-        left: textStyles[0].left,
-        top: textStyles[0].top,
-        color: textStyles[0].color,
-        fontSize: textStyles[0].fontSize,
-        backgroundColor: textStyles[0].backgroundColor,
-        padding: textStyles[0].padding,
-      };
-    } else if (imageData.imageType === "multiple image") {
-      previewData = {
-        imageType: imageData.imageType,
-        images: imageData.images.map((image) => ({
-          id: image.id,
-          url: image.url,
-          textStyles: image.textStyles.map((textStyle) => ({
-            id: textStyle.id,
-            text: textStyle.text,
-            left: textStyle.left,
-            top: textStyle.top,
-            color: textStyle.color,
-            fontSize: textStyle.fontSize,
-            backgroundColor: textStyle.backgroundColor,
-            padding: textStyle.padding,
-          })),
-        })),
-      };
-    }
-
-    localStorage.setItem("previewData", JSON.stringify(previewData));
-    // Save the preview data in localStorage
-
-    // Navigate to the "/preview" page
-    window.location.href = "/preview";
-  };
-
-  const canvasRef = useRef(null);
-
-
-
 
   const [textStyles, setTextStyles] = useState(
     imageData?.textStyles?.map((textStyle) => ({
@@ -77,7 +35,6 @@ const PreviewCard = () => {
       fontSize: parseInt(textStyle.fontSize),
     })) || []
   );
-
 
   const [selectedImage, setSelectedImage] = useState(
     imageData?.images ? imageData.images[0].url : null
@@ -201,16 +158,6 @@ const PreviewCard = () => {
     if (!canvas.contains(e.target)) {
       setSelectedTextIndex(null);
     }
-  };
-
-  const handleTextDragStop = (index, data) => {
-    const updatedTextStyles = [...textStyles];
-    updatedTextStyles[index] = {
-      ...updatedTextStyles[index],
-      left: data.x,
-      top: data.y,
-    };
-    setTextStyles(updatedTextStyles);
   };
 
   return (
@@ -340,6 +287,17 @@ const PreviewCard = () => {
           </div>
         )}
       </div>
+
+      {isDownloading && (
+        <div className="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white rounded p-4">
+            <p className="text-lg font-semibold">Downloading...</p>
+            <div className="mt-2">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900 mx-auto"></div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex mt-4 align-center justify-center">
         <Link href="/image-picker">
